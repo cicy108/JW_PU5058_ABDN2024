@@ -1,0 +1,95 @@
+---
+title: "alcohol_admissions_analysis_practive_JW"
+author: "JW"
+date: "2024-11-07"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Exercise 1: For the alcohol-related hospital admission data per intermediate data zone (the data we used in the previous section), plot the data distributions for each health board in 2019.
+
+## Load packages
+
+```{r}
+library(tidyverse)
+```
+
+## read in data
+
+```{r}
+raw_data <- read_csv("scotpho_data_extract.csv") 
+
+inter_zone_codes <- read_csv("iz2011_codes_and_labels_21042020.csv") 
+
+```
+## joint data
+```{r}
+
+iz_raw_data <- raw_data %>%
+  filter(area_type == "Intermediate zone") %>%
+  select(area_name,area_code,year,measure)
+
+iz_codes_HBname <- inter_zone_codes %>%
+  select(IntZone,HBName)
+
+admission_data <- left_join(iz_raw_data,iz_codes_HBname, by = c("area_code" = "IntZone"))
+
+admission_data <- admission_data %>%
+  mutate(HBName = gsub("NHS ", "", HBName)) %>%
+  rename(health_board = HBName,
+         alcohol_admissions = measure) %>% 
+  select('year','alcohol_admissions','health_board')
+
+glimpse(admission_data)
+```
+##select data for each health board in 2019
+```{r}
+all_health_board_2019 <- admission_data %>% 
+  filter(year == 2019)
+
+glimpse(all_health_board_2019)
+```
+## plot the data distributions for each health board in 2019
+```{r}
+#histogram
+all_health_board_2019 %>%                         
+  ggplot(aes(x = alcohol_admissions)) + 
+  geom_histogram(bins = 15) +
+  facet_wrap(~health_board)
+
+# Q-Q plot
+all_health_board_2019 %>%                          
+  ggplot(aes(sample = alcohol_admissions)) +          
+  geom_qq() + 
+  geom_qq_line(colour = "blue") + 
+  facet_wrap(~health_board)
+
+# boxplot
+all_health_board_2019 %>%                          
+  ggplot(aes(x = health_board,             
+             y = alcohol_admissions)) +    
+  geom_boxplot() +                        
+  geom_jitter(alpha = 0.4) +               # add data points
+  theme(legend.position = "none")    
+```
+
+## Transformation to normal
+```{r log-transform}
+
+all_health_board_2019_log <- all_health_board_2019 %>%     
+  mutate(alcohol_admissions_log = log(alcohol_admissions))      
+
+all_health_board_2019 %>% 
+  ggplot(aes(x = alcohol_admissions)) +             
+  geom_histogram(bins = 15) +         
+  ggtitle("Alcohol-related hospital admissions for all health boards in 2019") 
+
+all_health_board_2019_log %>% 
+  ggplot(aes(x = alcohol_admissions_log)) +             
+  geom_histogram(bins = 15) +          
+  ggtitle("Log of Alcohol-related hospital admissions for all health boards in 2019") 
+
+```

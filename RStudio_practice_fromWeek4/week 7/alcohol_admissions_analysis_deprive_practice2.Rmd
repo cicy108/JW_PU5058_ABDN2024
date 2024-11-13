@@ -1,0 +1,75 @@
+---
+title: "alcohol-admins_deprive-practice2"
+author: "JW"
+date: "2024-11-07"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Exercise 2: For which health boards do we have data on alcohol-related hospital admissions for each deprivation quintile? 
+
+
+## Load packages
+
+```{r}
+library(tidyverse)
+```
+
+## read in data
+
+```{r}
+depri_raw_data <- read_csv("alcohol-admissions_deprivation-data.csv") 
+
+inter_zone_codes <- read_csv("iz2011_codes_and_labels_21042020.csv") 
+
+unique(depri_raw_data$geography_code)
+
+```
+
+## filter data and select geography_code
+```{r}
+
+depri_health_board <- filter(inter_zone_codes, HB == 'S08000020' |   HB == 'S08000029') %>% 
+  select(HB, HBName)
+
+table(depri_health_board)
+```
+
+
+Exercise 3: Create boxplots showing alcohol admissions for each deprivation quintile. Create a different plot for each health board in the data set. 
+
+##prepare data
+
+```{r}
+depri_quintile <- depri_raw_data %>% 
+  inner_join(inter_zone_codes, by=c('geography_code'='HB')) %>%
+  select(HBName,quintile,indicator_measure) %>% 
+rename(health_board='HBName',admissions='indicator_measure') %>% 
+aggregate(health_board ~ quintile, data = depri_raw_data, FUN = sum)
+
+table(depri_quintile)
+```
+
+
+```{r}
+getwd()
+
+write_csv(depri_quintile,"alcohol_admissions_deprive.csv") ##where is it?
+```
+
+
+##box-plot alcohol admissions for each deprivation quintile
+```{r}
+depri_quintile %>%                          
+  ggplot(aes(x = quintile,             
+             y = admissions)) +    
+  geom_boxplot() +               
+ ggtitle("Alcohol Admissions for Each Deprivation Quintile") +
+facet_wrap(~health_board)+
+   theme(legend.position = "top")  #how to show legend 1=most deprived...
+```
+
+

@@ -1,0 +1,135 @@
+---
+title: "Practical Data Cleaning with R"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+this practice is from PU5058, PU5063 (2024 -25): Introduction to Health Data Science Practical: Data Cleaning with R week 6
+
+there are 3 questions
+
+1. Plot 'EQ-5D Index' scores pre and post operation for each gender
+
+2. Calculate how many patients in this dataset have been told by a doctor that they have problems caused by a stroke
+
+3. Create a clean and tidy table with pre and post operation activity levels
+
+### Load packages
+
+```{r}
+library(tidyverse)
+```
+
+### First question, Plot 'EQ-5D Index' scores pre and post operation for each gender
+
+## read in data and see the column names
+
+```{r read in data}
+raw_hip_data <- read_csv('Hip Replacement CCG 1819.csv')
+
+head (raw_hip_data)
+
+names(raw_hip_data)
+```
+
+##remove NA
+
+```{r remove NA}
+raw_hip_data_noNA <- raw_hip_data %>% 
+  drop_na() %>% 
+  filter(Gender!='*') %>% 
+  rename(EQ5D_Index_PreOp='Pre-Op Q EQ5D Index',EQ5D_Index_PostOp='Post-Op Q EQ5D Index')
+
+head(raw_hip_data_noNA)
+```
+
+## select Gender, 'EQ-5D Index' scores pre and post operation. replace 1=male(M), 2= female(F) in Gender column. add patient ID before plotting.
+
+```{r select 3 colomns}
+Gen_EQ5D_Index <- raw_hip_data_noNA %>% 
+  select('Gender','EQ5D_Index_PreOp','EQ5D_Index_PostOp') %>% 
+  mutate(Gender = recode(Gender, `1` = "M", `2` = "F")) %>% 
+  mutate(patient_ID = row_number())
+
+head(Gen_EQ5D_Index)
+summary(Gen_EQ5D_Index)
+```
+
+## Plot 'EQ-5D Index' scores pre and post operation for each gender
+
+```{r}
+tidy_Gen_EQ5D_Index <- Gen_EQ5D_Index %>%
+  pivot_longer(
+    c('EQ5D_Index_PreOp','EQ5D_Index_PostOp'),
+    names_to= 'Time',
+    names_prefix='EQ5D_Index_',
+    values_to= 'EQ5D_Index'
+    )
+
+head(tidy_Gen_EQ5D_Index)
+summary(tidy_Gen_EQ5D_Index)
+```
+
+## change order of Time and visualization of the frame!
+```{r}
+
+tidy_Gen_EQ5D_Index$Time <- factor(tidy_Gen_EQ5D_Index$Time, levels=c('PreOp','PostOp'))
+
+tidy_Gen_EQ5D_Index %>%
+  
+  ggplot() +
+  geom_boxplot(aes(x = Time, y = EQ5D_Index, colour = Gender)) 
+
+```
+
+
+## Try the transformation to normal (use log)
+```{r}
+EQ5D_Index_log <- tidy_Gen_EQ5D_Index %>% 
+   mutate(EQ5D_Index_log =log(EQ5D_Index))
+
+tidy_Gen_EQ5D_Index$Time <- factor(tidy_Gen_EQ5D_Index$Time, levels=c('PreOp','PostOp'))
+
+EQ5D_Index_log %>%
+  
+  ggplot() +
+  geom_boxplot(aes(x = Time, y = EQ5D_Index_log, colour = Gender)) 
+
+```
+
+
+### Second, calculate how many patients in this dataset have been told by a doctor that they have problems caused by a stroke
+
+```{r filter patients with stroke problems}
+patient_stroke <- raw_hip_data_noNA %>% 
+  rename(heart_disease='Heart Disease') %>% 
+  filter(Stroke==1) 
+
+count(patient_stroke)
+n1 <- nrow(patient_stroke)
+```
+
+There are `r n1` patients in this dataset have been told by a doctor that they have problems caused by a stroke.
+
+### Third, create a clean and tidy table with pre and post operation activity levels
+
+```{r select pre and post op activity levels}
+pre_and_post_act <- raw_hip_data_noNA %>% 
+  select('Gender','Pre-Op Q Activity', 'Post-Op Q Activity') %>% 
+  mutate(patient_ID=row_number())
+head(pre_and_post_act)
+summary(pre_and_post_act)
+```
+
+```{r tidy table with pre and post op activity levels}
+tidy_pre_post_act <- pre_and_post_act %>% 
+  rename(PreOp='Pre-Op Q Activity',PostOp='Post-Op Q Activity') %>% 
+  pivot_longer(c(PreOp,PostOp),
+               names_to='Time',
+               values_to='Activity')
+head(tidy_pre_post_act)
+summary(tidy_pre_post_act)
+```
