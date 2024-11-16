@@ -1,0 +1,75 @@
+Select everything from the demographics table:
+
+SELECT * 
+FROM demographic 
+
+Select only the first five rows from the demographics table:
+
+SELECT TOP 5 * 
+FROM demographic 
+
+Select the top five rows from the SIMD table:
+
+SELECT TOP 5 * 
+FROM simd 
+
+Select all the rows in the demograhics table where the postcode exists (it is not missing):
+
+SELECT * 
+FROM demographic 
+WHERE postcode is NOT NULL
+
+Select the first name, last name and date of birth from the demographics table for people with a date of birth later than 1/1/1990:
+
+SELECT first_name, last_name, dob 
+FROM demographic 
+WHERE dob > '1990-1-1'
+
+Select all the rows in the biochem test results table where the test is "Iron":
+
+SELECT *
+FROM biochem_test_results
+WHERE test = 'Iron'
+
+Count the number of tests for each type of test in the biochem test results table:
+
+SELECT test, count(*)
+FROM biochem_test_results
+GROUP BY test
+
+Select the first and last name for people who have had an infection test, as well as the date and result of the test: 
+
+SELECT demographic.first_name, demographic.last_name, infection_test_results.test_date, infection_test_results.result
+FROM demographic
+JOIN infection_test_results
+ON demographic.chi = infection_test_results.chi
+
+Select the first and last name for people who have had a positive infection test, as well as the date of the test: 
+
+SELECT demographic.first_name, demographic.last_name, infection_test_results.test_date 
+FROM demographic
+JOIN infection_test_results
+ON demographic.chi = infection_test_results.chi
+WHERE infection_test_results.result = 'positive'
+
+Select the first and last name for people who have had a positive infection test, the date of the test, and their SIMD decile: 
+
+SELECT demographic.first_name, demographic.last_name, infection_test_results.test_date, simd.decile 
+FROM demographic
+JOIN infection_test_results
+ON demographic.chi = infection_test_results.chi
+JOIN simd
+ON demographic.postcode = simd.postcode
+WHERE infection_test_results.result = 'positive'
+
+Count how many people who have had a positive infection test live in each SIMD decile:
+
+SELECT simd.decile, count(simd.decile) 
+FROM demographic
+JOIN infection_test_results
+ON demographic.chi = infection_test_results.chi
+JOIN simd
+ON demographic.postcode = simd.postcode
+WHERE infection_test_results.result = 'positive'
+GROUP BY simd.decile
+

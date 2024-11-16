@@ -1,0 +1,48 @@
+1. What is the maximum value of the blood test result?
+SELECT max(result)
+FROM blood_test_results
+
+2. What is the average value of each biochem test result?
+SELECT test, avg(result)
+FROM biochem_test_results
+GROUP BY test
+
+3. Return the postcodes and the number of people who live there according to the demographics table.
+SELECT postcode, count(*) 
+FROM demographic 
+GROUP BY postcode
+
+4.  Return all the rows from the demographic table and their corresponding SIMD values from the simd table.
+SELECT * 
+FROM demographic
+JOIN simd 
+ON demographic.postcode = simd.postcode
+
+5.  Return the number of people grouped by their SIMD value.
+SELECT simd.decile, count(*)
+FROM demographic 
+JOIN simd
+ON demographic.postcode = simd.postcode
+GROUP BY simd.decile
+
+6. Return the first and last names and CHI numbers of the people who tested positive for infection (infection_test_results table).
+SELECT demographic.first_name, demographic.last_name, demographic.chi 
+FROM infection_test_results
+JOIN demographic
+ON infection_test_results.chi = demographic.chi
+WHERE result = 'positive'
+
+7. Return the first and last name, and type and number of biochemical tests each person in the demographic table had. (Think carefully: what do you need to “GROUP BY” here?)
+SELECT demographic.first_name, demographic.last_name, biochem_test_results.test, count(*) 
+FROM biochem_test_results
+JOIN demographic
+ON biochem_test_results.chi=demographic.chi
+GROUP BY biochem_test_results.test,demographic.first_name, demographic.last_name
+
+8. Return the number of people who have both biochemical and infection test results. (Think about how to make sure you only count each patient once.)
+SELECT count(DISTINCT demographic.chi)
+FROM demographic
+JOIN biochem_test_results
+ON biochem_test_results.chi=demographic.chi
+JOIN infection_test_results
+ON infection_test_results.chi=demographic.chi
