@@ -1,0 +1,93 @@
+---
+title: "toy-data"
+author: "DBlana"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Load packages
+
+No packages needed for the code below!
+
+### Code to generate random CHI numbers
+
+```{r CHI}
+
+n <- 20 # this is the number of generated observations
+
+# "sample" generates random numbers, in this case 10 numbers between 0 and 9
+chi <- replicate(n, paste(sample(0:9, 10, replace=TRUE), collapse = ''))
+
+```
+
+### Random sex and date of birth
+
+```{r sex-DOB}
+sex <- replicate(n, sample(c('female', 'male'), 1))
+
+dob <- as.Date(replicate(n, paste(
+        sample(1950:2010, 1), '-',
+        sample(c(1,3:12), 1), '-',
+        sample(1:30, 1),
+        sep = ''
+    )))
+
+```
+
+### Combine into one dataframe
+
+```{r demographics}
+
+demographics <- data.frame(chi,
+                           sex,
+                           dob)
+
+```
+
+### Other data: Aberdeen postcodes, SIMD deciles
+
+```{r postcode-SIMD}
+
+postcode <- replicate(n,
+                  paste(
+                      'AB',
+                      sample(0:5, 1),
+                      sample(0:9, 1),
+                      ' ',
+                      sample(0:9, 1),
+                      sample(LETTERS, 1),
+                      sample(LETTERS, 1),
+                      sep = '')
+        )
+
+decile <- replicate(n, sample(1:10,1))
+
+```
+
+
+### Create blood test dataframe with the same CHI numbers as in demographics
+
+I've included both a numerical value and a positive/negative result
+
+```{r blood-test}
+
+n_tests <- 50
+blood_test_results <- data.frame(
+    chi = replicate(n_tests, sample(demographics$chi, 1)),
+    test_date = as.Date(replicate(n_tests, paste(
+        sample(1999:2020, 1), '-',
+        sample(c(1,3:12), 1), '-',
+        sample(1:30, 1),
+        sep = ''
+    ))),
+    #runif generates random values from the uniform distribution with min=1 and max=10
+    value = replicate(n_tests, round(runif(1, 1,10), 1)),
+    # here we sample from positive/negative, with 0.2 probability of positive, 0.8 probability of negative
+    result = replicate(n_tests, sample(c('positive', 'negative'), size = 1, prob = c(0.2, 0.8))))
+
+```
+
+### Then you can save the dataframes you want into csv files and use to test and share your code!

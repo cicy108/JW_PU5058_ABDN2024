@@ -1,0 +1,96 @@
+---
+title: "final R practice"
+author: "JW"
+date: "2024-11-19"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## load packages
+```{r}
+library(tidyverse)
+```
+
+## read in data
+```{r}
+data_hospital_admissions <- read.csv('hospital_admissions.csv')
+data_population_demographics <- read.csv('population_demographics.csv')
+
+summary(data_hospital_admissions)
+
+summary(data_population_demographics)
+
+tail(data_hospital_admissions, 10)
+
+tail(data_population_demographics, 10)
+```
+
+### practice 1.1) any problems with the values of age and deprivation?
+
+```{r}
+data_population_demographics$age <- as.numeric(data_population_demographics$age)
+
+arranged_population_demographics <- arrange(data_population_demographics, by= age)
+
+head(arranged_population_demographics)
+
+age_0 <- sum(arranged_population_demographics$age==0)
+
+print(age_0)
+
+table(arranged_population_demographics$age==0)
+
+n_na<- sum(is.na(arranged_population_demographics$deprivation))
+
+print(n_na)
+```
+
+There are 'r age_0' people in population_demographics whose age is 0. 
+
+There are 'r n_na' people in population_demographics whose deprivation is NA.
+
+##remove age=0 and remove NA in deprivation from population_demographics
+
+```{r}
+cleaned_population_demographics <- arranged_population_demographics  %>% 
+  filter(age!=0,!is.na(deprivation)) 
+
+duplicate_id<- cleaned_population_demographics %>% 
+  group_by(id) %>% 
+  filter(n()>1)
+
+print(duplicate_id)
+
+head(cleaned_population_demographics)
+
+```
+
+### practice 1.2) minimum, maximum and median age for each deprivation level?
+
+```{r}
+age_deprivation <- cleaned_population_demographics %>% 
+  group_by(deprivation) %>% 
+  summarise(min=min(age),max=max(age),median=median(age))
+
+head(age_deprivation)
+```
+
+
+### practice 2.1) create a data frame that contains both demographic and hospital admission data
+```{r}
+join_demographic_admission<- full_join(data_hospital_admissions,data_population_demographics) %>% 
+  filter(age!=0,!is.na(deprivation)) 
+
+summary(join_demographic_admission)
+```
+
+### practice 2.2) summarise total time in hospital in 2020 by age and deprivation. Include a graph you think would be useful to explain your answer to a general audience
+
+```{r}
+head(join_demographic_admission)
+```
+
+

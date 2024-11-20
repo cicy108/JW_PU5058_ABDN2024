@@ -1,0 +1,22 @@
+---
+title: "final R practice"
+author: "JW"
+date: "2024-11-19"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r}
+library(tidyverse)
+```
+
+```{r}
+data_hospital_admissions <- read.csv(hospital_admissions.csv)
+data_population_demographics <- read.csv(population_demographics.csv)
+
+glimpse(data_population_demographics)
+glimpse(data_hospital_admissions)
+```
+
